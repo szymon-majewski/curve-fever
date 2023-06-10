@@ -20,7 +20,17 @@ const snakes =
 
 let playersCount = 0;
 const maxPlayers = 4;
+let alivePlayersCount;
+let playersDiedThisTick;
 let updatedPosCount = 0;
+
+//DEBUG
+let ind = 0;
+
+// STUFF THAT SHOULD NOT BE HARDCODED HERE
+let snakeThickness = 1;
+let boardHeight = 550;
+let boardWidth = 550;
 
 io.on('connection', (socket) =>
 {
@@ -54,6 +64,8 @@ io.on('connection', (socket) =>
     socket.on('startGame', () =>
     {
         updatedPosCount = 0;
+        alivePlayersCount = playersCount;
+        playersDiedThisTick = 0;
         socket.to('playersInLobby').emit('gameStarted');
 
         // ?????
@@ -62,11 +74,23 @@ io.on('connection', (socket) =>
 
     socket.on('updateSnakePos', (data) =>
     {
-        ++updatedPosCount;
         snakes[data.id].x = data.x;
         snakes[data.id].y = data.y;
 
-        if (updatedPosCount == playersCount)
+        if (checkCollisionWithBorder(data.id))
+        {
+            socket.to('playersInLobby').emit('playerDied', { id: data.id });
+            // ?????
+            socket.emit('playerDied', { id: data.id });
+
+            ++playersDiedThisTick;
+            console.log("player died " + data.id);
+        }
+
+        console.log("iter " + ind + ": player " + data.id);
+
+        ++updatedPosCount;
+        if (updatedPosCount == alivePlayersCount)
         {
             let snakesPos = [];
             for (let i = 0; i < playersCount; ++i)
@@ -80,8 +104,26 @@ io.on('connection', (socket) =>
             socket.emit('updateGameState', snakesPos);
 
             updatedPosCount = 0;
+            alivePlayersCount -= playersDiedThisTick;
+            playersDiedThisTick = 0;
+            ind++;
         }
     });
 });
+
+function checkCollisionWithBorder(snakeId)
+{
+    if (snakes[snakeId].x - snakeThickness <= 0 ||
+        snakes[snakeId].x + snakeThickness >= boardWidth ||
+        snakes[snakeId].y - snakeThickness <= 0 ||
+        snakes[snakeId].y + snakeThickness >= boardHeight)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 server.listen(port, () => console.log("Listening on port " + port))

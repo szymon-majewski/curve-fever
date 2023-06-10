@@ -17,6 +17,8 @@ const tickInterval = 25;
 let findLobbyButton = document.getElementById("findLobbyButton");
 let startGameButton = document.getElementById("startGameButton");
 let playersList = document.getElementById("playersList");
+let updateSnakePosInterval;
+let playersParagraphs = [];
 
 startGameButton.disabled = true;
 
@@ -42,9 +44,12 @@ socket.on('findLobbyResponse', (data) =>
         snakes[i].drawHead();
 
         const p = document.createElement("p");
-        const node = document.createTextNode(data.names[i]);
+        p.classList.add("PlayerId");
+        p.style.color = snakesPrefabs[i].color;
+        const node = document.createTextNode(data.names[i] + ' 0');
         p.appendChild(node);
         playersList.appendChild(p);
+        playersParagraphs.push(p);
     }
 
     if (snakes.length > 1)
@@ -67,9 +72,12 @@ socket.on('newPlayerJoined', (data) =>
     snakes[newSnakeId].drawHead();
 
     const p = document.createElement("p");
-    const node = document.createTextNode(data.name);
+    p.classList.add("PlayerId");
+    p.style.color = snakesPrefabs[newSnakeId].color;
+    const node = document.createTextNode(data.name + ' 0');
     p.appendChild(node);
     playersList.appendChild(p);
+    playersParagraphs.push(p);
 
     if (snakes.length > 1)
     {
@@ -84,18 +92,27 @@ startGameButton.onclick = function()
 }
 
 let gameOver = true;
+let recievedServerGameStateResponse = false;
+let alive;
+let alivePlayersCount;
 
 // setup game
 socket.on('gameStarted', () =>
 {
     startGameButton.disabled = true;
     gameOver = false;
+    alive = true;
+    alivePlayersCount = snakes.length;
+    socket.emit('updateSnakePos', { id: id, x: snakes[id].x, y: snakes[id].y });
 
-    setInterval( () =>
+    updateSnakePosInterval = setInterval( () =>
     {
-        snakes[id].move();
-        socket.emit('updateSnakePos', { id: id, x: snakes[id].x, y: snakes[id].y });
-        
+        if (recievedServerGameStateResponse)
+        {
+            recievedServerGameStateResponse = false;
+            snakes[id].move();
+            socket.emit('updateSnakePos', { id: id, x: snakes[id].x, y: snakes[id].y });
+        }
     }, tickInterval);
 });
 
@@ -109,11 +126,29 @@ socket.on('updateGameState', (data) =>
         {
             snakes[i].x = data[i].x;
             snakes[i].y = data[i].y;
+            snakes[i].drawHead();
         }
-
-        snakes[i].drawHead();
     }
 
-    // snakes[id].move();
-    // socket.emit('updateSnakePos', { id: id, x: snakes[id].x, y: snakes[id].y });
+    if (alive)
+    {
+        snakes[id].drawHead();
+    }
+
+    recievedServerGameStateResponse = true;
+});
+
+socket.on('playerDied', (data) =>
+{
+    console.log("someone died");
+    if (data.id == id)
+    {
+        console.log("i died");
+        alive = false;
+        clearInterval(updateSnakePosInterval);
+    }
+
+    alivePlayersCount--;
+    snakes[data.id].score += snakes.length - alivePlayersCount;
+    playersParagraphs[data.id].textContent = snakes[data.id].name + ' ' + snakes[data.id].score;
 });
