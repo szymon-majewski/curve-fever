@@ -9,12 +9,27 @@
     font-size: larger;
 }
 
-#title
-{
-    
-}
-
 body
 {
     background-color: gray;
+}
+
+#top
+{
+    display: flex;
+}
+
+#title
+{
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: xx-large;
+    font-weight: bold;
+}
+
+#winnerText
+{
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    /* font-size: large; */
+    font-size: xx-large;
+    margin-left: 150px;
 }

@@ -1,4 +1,5 @@
 import { Snake } from './snake.js'
+import { SlowDownBonus, SpeedUpBonus } from './bonus.js'
 
 let canvas = document.getElementById('Board');
 let ctx = canvas.getContext('2d');
@@ -14,16 +15,19 @@ const snakesPrefabs =
 ];
 
 let snakes = [];
+let bonuses = [];
 let id;
 const tickInterval = 25;
 
 let findLobbyButton = document.getElementById("findLobbyButton");
 let startGameButton = document.getElementById("startGameButton");
 let playersList = document.getElementById("playersList");
+let winnerText = document.getElementById("winnerText");
 let updateSnakePosInterval;
 let playersParagraphs = [];
 
 startGameButton.disabled = true;
+winnerText.hidden = true;
 
 socket.on('connect', () =>
 {
@@ -100,7 +104,6 @@ startGameButton.onclick = function()
     startGameButton.disabled = true;
 }
 
-let gameOver = true;
 let roundId = 0;
 let recievedServerGameStateResponse = false;
 let alive;
@@ -110,10 +113,11 @@ let alivePlayersCount;
 socket.on('gameStarted', () =>
 {
     startGameButton.disabled = true;
-    gameOver = false;
+    winnerText.hidden = true;
     alive = true;
     alivePlayersCount = snakes.length;
     ++roundId;
+    bonuses = [];
     refreshBoard();
 
     for (let i = 0; i < snakes.length; ++i)
@@ -172,6 +176,70 @@ socket.on('playerDied', (data) =>
     playersParagraphs[data.id].textContent = snakes[data.id].name + ' ' + snakes[data.id].score;
 });
 
+socket.on('playerWon', (data) =>
+{
+    if (data.id == id)
+    {
+        console.log("i won");
+        alive = false;
+        clearInterval(updateSnakePosInterval);
+    }
+
+    alivePlayersCount--;
+    snakes[data.id].score += snakes.length - alivePlayersCount;
+    playersParagraphs[data.id].textContent = snakes[data.id].name + ' ' + snakes[data.id].score;
+
+    winnerText.style.color = snakesPrefabs[data.id].color;
+    winnerText.textContent = snakes[data.id].name + ' won!!!';
+    winnerText.hidden = false;
+});
+
+socket.on('playerWonNoPoints', (data) =>
+{
+    if (data.id == id)
+    {
+        console.log("i won");
+        alive = false;
+        clearInterval(updateSnakePosInterval);
+    }
+
+    winnerText.style.color = snakesPrefabs[data.id].color;
+    winnerText.textContent = snakes[data.id].name + ' won!!!';
+    winnerText.hidden = false;
+});
+
+socket.on('bonusAppeared', (data) =>
+{
+    let bonus;
+    switch (data.type)
+    {
+        case "slowDown":
+            bonus = new SlowDownBonus(data.id, data.x, data.y);
+            break;
+        case "speedUp":
+            bonus = new SpeedUpBonus(data.id, data.x, data.y);
+            break;
+    }
+    bonuses.push(bonus);
+    bonus.draw();
+});
+
+socket.on('bonusTaken', (data) =>
+{
+    if (data.snakeId == id)
+    {
+        for (let i = 0; i < bonuses.length; ++i)
+        {
+            if (bonuses[i].id == data.bonusId)
+            {
+                bonuses[i].action(snakes[id]);   
+                bonuses.splice(i, 1);
+                break;
+            }
+        }
+    }
+});
+
 function refreshBoard()
 {
     // Clear the canvas
@@ -190,4 +258,5 @@ function copySnakePosition(original, copy)
     copy.yDir = original.yDir;
     copy.moveLeft = false;
     copy.moveRight = false;
+    copy.speed = copy.defaultSpeed;
 }

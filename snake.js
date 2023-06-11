@@ -3,9 +3,10 @@ let ctx = canvas.getContext('2d');
 
 export class Snake
 {
-    thickness = 2;
+    thickness = 3;
     inputSensitivity = 0.1;
-    speed = 2.3;
+    speed = 3.1;
+    defaultSpeed = 3.1;
     moveLeft = false;
     moveRight = false;
     name = "unnamed";

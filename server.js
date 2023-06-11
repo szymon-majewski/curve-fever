@@ -21,15 +21,26 @@ let playersCount = 0;
 const maxPlayers = 4;
 let alivePlayersCount;
 let playersDiedThisTick;
+let lastPlayerToDieThisTick;
 let updatedPosCount = 0;
 let timeBetweenRounds = 1000;
-let ommitedSelfPartsCount = 10;
-
-//DEBUG
-let ind = 0;
+let ommitedSelfPartsCount = 20;
+let roundEnded;
+let whoAlive = [];
+let ticks = 0;
+let bonusEveryTick = 100;
+let bonusRadius = 12.5;
+let bonusDiameter = bonusRadius * 2;
+const maxBonuses = 3;
+let bonuses = [];
+let bonusesTypes =
+{
+    0: "slowDown",
+    1: "speedUp"
+}
 
 // STUFF THAT SHOULD NOT BE HARDCODED HERE
-let snakeThickness = 1;
+let snakeThickness = 1.5;
 let snakeDiameter = snakeThickness * 2;
 let boardHeight = 550;
 let boardWidth = 550;
@@ -68,9 +79,15 @@ io.on('connection', (socket) =>
         updatedPosCount = 0;
         alivePlayersCount = playersCount;
         playersDiedThisTick = 0;
+        roundEnded = false;
+
+        for (let i = 0; i < playersCount; ++i)
+        {
+            whoAlive.push(i);
+            snakes[i].parts = [];
+        }
 
         socket.to('playersInLobby').emit('gameStarted');
-
         // ?????
         socket.emit('gameStarted');
     });
@@ -81,17 +98,29 @@ io.on('connection', (socket) =>
         snakes[data.id].y = data.y;
         snakes[data.id].parts.push({ x: data.x, y: data.y });
 
-        if (checkCollisionWithBorder(data.id) || checkCollisionWithSnakes(data.id))
+        let bonusId = checkCollisionWithBonuses(data.id);
+
+        if (bonusId != -1)
+        {
+            socket.to('playersInLobby').emit('bonusTaken', { snakeId: data.id, bonusId: bonusId });
+            // ?????
+            socket.emit('bonusTaken', { snakeId: data.id, bonusId: bonusId });
+        }
+
+        if (/*checkCollisionWithBorder(data.id) ||*/ checkCollisionWithSnakes(data.id))
         {
             socket.to('playersInLobby').emit('playerDied', { id: data.id });
             // ?????
             socket.emit('playerDied', { id: data.id });
 
             ++playersDiedThisTick;
+            lastPlayerToDieThisTick = data.id;
             console.log("player died " + data.id);
+
+            whoAlive.splice(whoAlive.indexOf(data.id), 1);
         }
 
-        console.log("iter " + ind + ": player " + data.id);
+        console.log("iter " + ticks + ": player " + data.id);
 
         ++updatedPosCount;
         if (updatedPosCount == alivePlayersCount)
@@ -110,14 +139,38 @@ io.on('connection', (socket) =>
             updatedPosCount = 0;
             alivePlayersCount -= playersDiedThisTick;
             playersDiedThisTick = 0;
-            ind++;
+            ticks++;
+
+            if (ticks % bonusEveryTick == 0 && bonuses.length < maxBonuses)
+            {
+                data = chooseBonusPositionAndType();
+                bonuses.push(data);
+
+                socket.to('playersInLobby').emit('bonusAppeared', data);
+                // ?????
+                socket.emit('bonusAppeared', data);
+            }
         }
 
-        if (alivePlayersCount == 0)
+        if (alivePlayersCount <= 1 && !roundEnded)
         {
+            roundEnded = true;
+
+            if (alivePlayersCount == 1)
+            {
+                socket.to('playersInLobby').emit('playerWon', { id: whoAlive[0] });
+                // ?????
+                socket.emit('playerWon', { id: whoAlive[0] });
+            }
+            else
+            {
+                socket.to('playersInLobby').emit('playerWonNoPoints', { id: lastPlayerToDieThisTick });
+                // ?????
+                socket.emit('playerWonNoPoints', { id: lastPlayerToDieThisTick });
+            }
+
             setTimeout(() =>
-            { 
-                console.log("death");
+            {
                 socket.to('playersInLobby').emit('gameStarted');
                 // ?????
                 socket.emit('gameStarted');
@@ -128,25 +181,20 @@ io.on('connection', (socket) =>
                 {
                     snakes[i].parts = [];
                 }
+
+                whoAlive = [];
+                for (let i = 0; i < playersCount; ++i)
+                {
+                    whoAlive.push(i);
+                }
+
+                roundEnded = false;
+                ticks = 0;
+                bonuses = [];
             }, timeBetweenRounds);
         }
     });
 });
-
-function checkCollisionWithBorder(snakeId)
-{
-    if (snakes[snakeId].x - snakeThickness <= 0 ||
-        snakes[snakeId].x + snakeThickness >= boardWidth ||
-        snakes[snakeId].y - snakeThickness <= 0 ||
-        snakes[snakeId].y + snakeThickness >= boardHeight)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
 
 function checkCollisionWithBorder(snakeId)
 {
@@ -172,10 +220,10 @@ function checkCollisionWithSnakes(snakeId)
     {
         end = (i == snakeId ? snakes[i].parts.length - ommitedSelfPartsCount : snakes[i].parts.length);
         
-        // Skipping every third circle
-        for (let j = 0; j < end; j += 3)
+        // Checking every second circle
+        for (let j = 0; j < end; j += 2)
         {
-            if (circlesIntersect(snakes[i].parts[j], head))
+            if (circlesIntersect(snakes[i].parts[j], snakeThickness, head, snakeThickness))
             {
                 return true;
             }
@@ -185,9 +233,43 @@ function checkCollisionWithSnakes(snakeId)
     return false;
 }
 
-function circlesIntersect(circle1, circle2)
+function checkCollisionWithBonuses(snakeId)
 {
-    return (Math.sqrt(Math.pow(circle1.x - circle2.x, 2) + Math.pow(circle1.y - circle2.y, 2)) <= snakeDiameter)
+    let head = snakes[snakeId].parts[snakes[snakeId].parts.length - 1];
+
+    for (let i = 0; i < bonuses.length; ++i)
+    {
+        if (circlesIntersect(head, snakeThickness, { x: bonuses[i].x + bonusRadius, y: bonuses[i].y + bonusRadius }, bonusRadius))
+        {
+            let collisionBonusId = bonuses[i].id
+
+            bonuses.splice(i, 1);
+
+            return collisionBonusId;
+        }
+    }
+    
+    return -1;
+}
+
+function circlesIntersect(circle1Pos, circle1Diameter, circle2Pos, circle2Diameter)
+{
+    return (Math.sqrt(Math.pow(circle1Pos.x - circle2Pos.x, 2) + Math.pow(circle1Pos.y - circle2Pos.y, 2)) <= circle1Diameter + circle2Diameter);
+}
+
+function chooseBonusPositionAndType()
+{
+    while (true)
+    {
+        let bonusX = Math.random() * (boardWidth - bonusDiameter);
+        let bonusY = Math.random() * (boardHeight - bonusDiameter);
+
+        // check
+
+        let type = Math.floor(Math.random() * Object.keys(bonusesTypes).length);
+        //console.log(type + ' ' + bonusesTypes[type]);
+        return { id: ticks, x: bonusX, y: bonusY, type: bonusesTypes[type] };
+    }
 }
 
 server.listen(port, () => console.log("Listening on port " + port))
