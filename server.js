@@ -9,13 +9,12 @@ const server = http.Server(app);
 const io = SocketIO(server);
 const port = 3000;
 
-// I dont think I need xDir, yDir in here
 const snakes = 
 [
-    { x: 50, y: 50, name: "", xDir: 0.5, yDir: 0.5 },
-    { x: 500, y: 50, name: "", xDir: -0.5, yDir: 0.5 },
-    { x: 500, y: 500, name: "", xDir: -0.5, yDir: -0.5 },
-    { x: 50, y: 500, name: "", xDir: 0.5, yDir: -0.5 }
+    { x: 50, y: 50, name: ""},
+    { x: 500, y: 50, name: ""},
+    { x: 500, y: 500, name: ""},
+    { x: 50, y: 500, name: ""}
 ];
 
 let playersCount = 0;
@@ -23,6 +22,7 @@ const maxPlayers = 4;
 let alivePlayersCount;
 let playersDiedThisTick;
 let updatedPosCount = 0;
+let timeBetweenRounds = 1000;
 
 //DEBUG
 let ind = 0;
@@ -107,6 +107,19 @@ io.on('connection', (socket) =>
             alivePlayersCount -= playersDiedThisTick;
             playersDiedThisTick = 0;
             ind++;
+        }
+
+        if (alivePlayersCount == 0)
+        {
+            setTimeout(() =>
+            { 
+                console.log("death");
+                socket.to('playersInLobby').emit('gameStarted');
+                // ?????
+                socket.emit('gameStarted');
+
+                alivePlayersCount = playersCount;
+            }, timeBetweenRounds);
         }
     });
 });

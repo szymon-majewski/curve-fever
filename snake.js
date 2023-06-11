@@ -1,13 +1,11 @@
 let canvas = document.getElementById('Board');
-let buttonLeft = document.getElementById('buttonLeft');
-let buttonRight = document.getElementById('buttonRight');
 let ctx = canvas.getContext('2d');
 
 export class Snake
 {
     thickness = 2;
     inputSensitivity = 0.1;
-    speed = 1.7;
+    speed = 2.3;
     snakePoints = [];
     moveLeft = false;
     moveRight = false;
@@ -26,10 +24,6 @@ export class Snake
 
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.addEventListener('keyup', this.handleKeyUp.bind(this));
-        buttonLeft.addEventListener('mousedown', () => {this.moveLeft = true;});
-        buttonLeft.addEventListener('mouseup', () => {this.moveLeft = false;});
-        buttonRight.addEventListener('mousedown', () => {this.moveRight = true;});
-        buttonRight.addEventListener('mouseup', () => {this.moveRight = false;});
     }
 
     move()
