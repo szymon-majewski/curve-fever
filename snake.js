@@ -6,7 +6,6 @@ export class Snake
     thickness = 2;
     inputSensitivity = 0.1;
     speed = 2.3;
-    snakePoints = [];
     moveLeft = false;
     moveRight = false;
     name = "unnamed";
@@ -19,8 +18,6 @@ export class Snake
         this.xDir = xDir;
         this.yDir = yDir;
         this.color = color;
-
-        this.snakePoints.push({ x: this.x, y: this.y });
 
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.addEventListener('keyup', this.handleKeyUp.bind(this));
@@ -80,8 +77,6 @@ export class Snake
 
         this.x += this.xDir * this.speed;
         this.y += this.yDir * this.speed;
-
-        this.snakePoints.push({ x: this.x, y: this.y });
     }
 
     drawHead()

@@ -139,8 +139,6 @@ socket.on('gameStarted', () =>
 
 socket.on('updateGameState', (data) =>
 {
-    console.log("jestem tu");
-
     for (let i = 0; i < snakes.length; ++i)
     {
         if (i != id)
