@@ -4,17 +4,6 @@
     border: 2px solid white;
 }
 
-.PlayerId
-{
-    font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: larger;
-}
-
-#playersList
-{
-    
-}
-
 #centralPart
 {
     display: flex;
@@ -31,6 +20,18 @@
 {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    min-height: 550px;
+}
+
+#sidePanel #nicknameInput
+{
+    margin-top: 200px;
+}
+
+#sidePanel #playersList
+{
+    margin-top: auto;
 }
 
 #sidePanel *
@@ -38,9 +39,10 @@
     margin-top: 10px;
 }
 
-#sidePanel > #winnerText
+.PlayerId
 {
-    align-items: flex-start;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: larger;
 }
 
 body
@@ -86,5 +88,6 @@ header
   
 .bonusImage
 {
-    animation: entryAnimation 5s ease-out;
+    position: absolute;
+    animation: entryAnimation 1s ease-out;
 }

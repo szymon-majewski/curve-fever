@@ -29,7 +29,7 @@ let roundEnded;
 let whoAlive = [];
 let ticks = 0;
 let bonusEveryTick = 100;
-let bonusRadius = 12.5;
+let bonusRadius = 15;
 let bonusDiameter = bonusRadius * 2;
 const maxBonuses = 3;
 let bonuses = [];
@@ -38,8 +38,6 @@ let bonusesTypes =
     0: "slowDown",
     1: "speedUp"
 }
-
-// STUFF THAT SHOULD NOT BE HARDCODED HERE
 let snakeThickness = 1.5;
 let snakeDiameter = snakeThickness * 2;
 let boardHeight = 550;
@@ -107,7 +105,7 @@ io.on('connection', (socket) =>
             socket.emit('bonusTaken', { snakeId: data.id, bonusId: bonusId });
         }
 
-        if (/*checkCollisionWithBorder(data.id) ||*/ checkCollisionWithSnakes(data.id))
+        if (checkCollisionWithBorder(data.id) || checkCollisionWithSnakes(data.id))
         {
             socket.to('playersInLobby').emit('playerDied', { id: data.id });
             // ?????

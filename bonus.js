@@ -1,10 +1,32 @@
 let canvas = document.getElementById('Board');
-let ctx = canvas.getContext('2d');
+let canvasRect = canvas.getBoundingClientRect();
+let canvasTop = canvasRect.top;
+let canvasLeft = canvasRect.left;
 
-export class SlowDownBonus
+class Bonus
+{
+    draw()
+    {
+        this.wrapper = document.createElement('div');
+        this.wrapper.classList.add('bonusImage');
+        this.wrapper.style.left = 500;
+        this.wrapper.style.top = canvasTop + this.y + 'px';
+        this.wrapper.style.left = canvasLeft + this.x + 'px';
+        this.wrapper.appendChild(this.img);
+        document.body.appendChild(this.wrapper);
+    }
+
+    erase()
+    {
+        this.wrapper.parentNode.removeChild(this.wrapper);
+    }
+}
+
+export class SlowDownBonus extends Bonus
 {
     constructor(id, x, y)
     {
+        super();
         this.img = new Image(30, 30);
         this.img.onload = () =>
         {
@@ -12,28 +34,12 @@ export class SlowDownBonus
         };
         this.img.src = "res/slow_down.png";
 
-        this.wrapper = document.createElement('div');
-        this.wrapper.classList.add('bonusImage');
-        this.wrapper.appendChild(this.img);
-        //canvas.parentNode.appendChild(this.wrapper);
-
         this.id = id;
         this.x = x;
         this.y = y;
         this.speedModifier = 0.5;
         this.duration = 5000;
-        this.diameter = 25;
-        this.bonusEraseOffset = 0.2;
-    }
-
-    draw()
-    {
-        //ctx.drawImage(this.img, this.x, this.y, this.diameter, this.diameter);
-    }
-
-    erase()
-    {
-        //ctx.clearRect(this.x, this.y, this.diameter + this.bonusEraseOffset, this.diameter + this.bonusEraseOffset);
+        this.diameter = 30;
     }
 
     action(snake)
@@ -47,10 +53,11 @@ export class SlowDownBonus
     }
 }
 
-export class SpeedUpBonus
+export class SpeedUpBonus extends Bonus
 {
     constructor(id, x, y)
     {
+        super();
         this.img = new Image(30, 30);
         this.img.onload = () =>
         {
@@ -62,18 +69,7 @@ export class SpeedUpBonus
         this.y = y;
         this.speedModifier = 1.5;
         this.duration = 5000;
-        this.diameter = 25;
-        this.bonusEraseOffset = 0.2;
-    }
-
-    draw()
-    {
-        ctx.drawImage(this.img, this.x, this.y, this.diameter, this.diameter);
-    }
-
-    erase()
-    {
-        ctx.clearRect(this.x, this.y, this.diameter + this.bonusEraseOffset, this.diameter + this.bonusEraseOffset);
+        this.diameter = 30;
     }
 
     action(snake)

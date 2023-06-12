@@ -117,8 +117,8 @@ socket.on('gameStarted', () =>
     alive = true;
     alivePlayersCount = snakes.length;
     ++roundId;
-    bonuses = [];
     refreshBoard();
+    bonuses = [];
 
     for (let i = 0; i < snakes.length; ++i)
     {
@@ -249,6 +249,11 @@ function refreshBoard()
     // Draw the black background
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < bonuses.length; ++i)
+    {
+        bonuses[i].erase();
+    }
 }
 
 function copySnakePosition(original, copy)
