@@ -144,11 +144,14 @@ io.on('connection', (socket) =>
             if (ticks % bonusEveryTick == 0 && bonuses.length < maxBonuses)
             {
                 data = chooseBonusPositionAndType();
-                bonuses.push(data);
 
-                socket.to('playersInLobby').emit('bonusAppeared', data);
-                // ?????
-                socket.emit('bonusAppeared', data);
+                if (data !== -1)
+                {
+                    bonuses.push(data);
+                    socket.to('playersInLobby').emit('bonusAppeared', data);
+                    // ?????
+                    socket.emit('bonusAppeared', data);
+                }
             }
         }
 
@@ -259,17 +262,40 @@ function circlesIntersect(circle1Pos, circle1Diameter, circle2Pos, circle2Diamet
 
 function chooseBonusPositionAndType()
 {
-    while (true)
+    let validPos;
+    let tries = 0;
+
+    while (++tries < 100)
     {
         let bonusX = Math.random() * (boardWidth - bonusDiameter);
         let bonusY = Math.random() * (boardHeight - bonusDiameter);
 
         // check
+        validPos = true;
+        
+        for (let i = 0; i < playersCount && validPos; ++i)
+        {
+            for (let j = 0; j < snakes[i].parts.length; ++j)
+            {
+                if (circlesIntersect(snakes[i].parts[j], snakeThickness, { x: bonusX + bonusRadius, y: bonusY + bonusRadius }, bonusRadius))
+                {
+                    validPos = false;
+                    break;
+                }
+            }
+        }
+
+        if (!validPos)
+        {
+            continue;
+        }
 
         let type = Math.floor(Math.random() * Object.keys(bonusesTypes).length);
         //console.log(type + ' ' + bonusesTypes[type]);
         return { id: ticks, x: bonusX, y: bonusY, type: bonusesTypes[type] };
     }
+
+    return -1;
 }
 
 server.listen(port, () => console.log("Listening on port " + port))

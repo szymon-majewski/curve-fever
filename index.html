@@ -1,27 +1,25 @@
 <!DOCTYPE html>
 <html lang="en-US">
-    <head>
+    <header>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Curves</title>
         <link rel="stylesheet" href="styles.css" />
-    </head>
+    </header>
     <body>
-        <div id="top">
-            <p id="title">Achtung!</p>
-            <p id="winnerText">the winner takes it all</p>
+        <header>
+            <h1 id="title">Curve fever!</h1>
+        </header>
+        <div id="centralPart">
+            <canvas id="Board" width="550px" height="550px"></canvas>
+            <div id="sidePanel">
+                <p id="winnerText">the winner takes it all</p>
+                <input id="nicknameInput" type="text" placeholder="Enter your nickname!">
+                <button id="findLobbyButton">Find a lobby!</button>
+                <button id="startGameButton">Start the game!</button>
+                <div id="playersList"></div>
+            </div>
         </div>
-        <canvas id="Board" width="550px" height="550px">
-
-        </canvas>
-        <input id="nicknameInput" type="text" placeholder="Enter your nickname!">
-        <button id="findLobbyButton">
-            Find a lobby!
-        </button>
-        <button id="startGameButton">
-            Start the game!
-        </button>
-        <div id="playersList"></div>
 
         <script src="socket.io/socket.io.js"></script>
         <script type="module" src="main.js"></script>

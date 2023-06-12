@@ -1,6 +1,7 @@
 #Board
 {
     background-color: black;
+    border: 2px solid white;
 }
 
 .PlayerId
@@ -9,27 +10,81 @@
     font-size: larger;
 }
 
-body
+#playersList
 {
-    background-color: gray;
+    
 }
 
-#top
+#centralPart
 {
     display: flex;
+    justify-content: center;   
+    align-items: center;
+}
+
+#centralPart *
+{
+    margin-right: 20px;
+}
+
+#sidePanel
+{
+    display: flex;
+    flex-direction: column;
+}
+
+#sidePanel *
+{
+    margin-top: 10px;
+}
+
+#sidePanel > #winnerText
+{
+    align-items: flex-start;
+}
+
+body
+{
+    background-image: url(res/bg4.jpg);
+    background-repeat: no-repeat;
+}
+
+header
+{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
 }
 
 #title
 {
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: xx-large;
+    font-size: 40px;
     font-weight: bold;
+    color: white;
 }
 
 #winnerText
 {
+    position: absolute;
+    top: 166px;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    /* font-size: large; */
-    font-size: xx-large;
-    margin-left: 150px;
+    font-size: xx-large;   
+}
+
+@keyframes entryAnimation
+{
+    from 
+    {
+      transform: scale(0);
+    }
+    to 
+    {
+      transform: scale(1);
+    }
+}
+  
+.bonusImage
+{
+    animation: entryAnimation 5s ease-out;
 }

@@ -226,16 +226,17 @@ socket.on('bonusAppeared', (data) =>
 
 socket.on('bonusTaken', (data) =>
 {
-    if (data.snakeId == id)
+    for (let i = 0; i < bonuses.length; ++i)
     {
-        for (let i = 0; i < bonuses.length; ++i)
+        if (bonuses[i].id == data.bonusId)
         {
-            if (bonuses[i].id == data.bonusId)
-            {
-                bonuses[i].action(snakes[id]);   
-                bonuses.splice(i, 1);
-                break;
+            if (data.snakeId == id)
+            {  
+                bonuses[i].action(snakes[id]);
             }
+            bonuses[i].erase();
+            bonuses.splice(i, 1);
+            break;
         }
     }
 });

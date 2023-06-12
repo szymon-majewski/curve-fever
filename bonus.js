@@ -11,17 +11,29 @@ export class SlowDownBonus
             this.draw();
         };
         this.img.src = "res/slow_down.png";
+
+        this.wrapper = document.createElement('div');
+        this.wrapper.classList.add('bonusImage');
+        this.wrapper.appendChild(this.img);
+        //canvas.parentNode.appendChild(this.wrapper);
+
         this.id = id;
         this.x = x;
         this.y = y;
         this.speedModifier = 0.5;
         this.duration = 5000;
         this.diameter = 25;
+        this.bonusEraseOffset = 0.2;
     }
 
     draw()
     {
-        ctx.drawImage(this.img, this.x, this.y, this.diameter, this.diameter);
+        //ctx.drawImage(this.img, this.x, this.y, this.diameter, this.diameter);
+    }
+
+    erase()
+    {
+        //ctx.clearRect(this.x, this.y, this.diameter + this.bonusEraseOffset, this.diameter + this.bonusEraseOffset);
     }
 
     action(snake)
@@ -51,11 +63,17 @@ export class SpeedUpBonus
         this.speedModifier = 1.5;
         this.duration = 5000;
         this.diameter = 25;
+        this.bonusEraseOffset = 0.2;
     }
 
     draw()
     {
         ctx.drawImage(this.img, this.x, this.y, this.diameter, this.diameter);
+    }
+
+    erase()
+    {
+        ctx.clearRect(this.x, this.y, this.diameter + this.bonusEraseOffset, this.diameter + this.bonusEraseOffset);
     }
 
     action(snake)
